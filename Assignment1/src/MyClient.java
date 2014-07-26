@@ -1,50 +1,60 @@
 import java.net.*;
 import java.io.*;
- 
+
 public class MyClient 
 {
-	public class userob
-	{
-		
-	}
-	
-    public static void main(String[] args) throws IOException 
+	private Socket socket = null;
+    private ObjectInputStream inFromServer = null;
+    private ObjectOutputStream outToServer = null;
+    private boolean isConnected = false;
+
+    
+    public void communicate() 
     {
-        String hostName = "localhost";
-        int portNumber = 6066;
-        
-        try 
-        {
-			Socket kkSocket = new Socket(hostName, portNumber);
-			PrintWriter out = new PrintWriter(kkSocket.getOutputStream(), true);
-			BufferedReader in = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));
-            BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
-            String fromServer;
-            String fromUser;
- 
-            while ((fromServer = in.readLine()) != null)
-            {
-                System.out.println("Server: " + fromServer);
-                if (fromServer.equals("Bye."))
-                    break;
-                 
-                fromUser = stdIn.readLine();
-                if (fromUser != null) 
-                {
-                    System.out.println("Client: " + fromUser);
-                    out.println(fromUser);
-                }
+    	String inputName = "";
+    	SocketAddress userAddress = null;
+    	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    	
+    	while (!isConnected)
+    	{
+    		try 
+    		{
+    			socket = new Socket("localHost", 6066);
+    			System.out.println("User Connected.");
+    			isConnected = true;
+    			userAddress = socket.getRemoteSocketAddress();
+    			outToServer = new ObjectOutputStream(socket.getOutputStream());
+                inFromServer = new ObjectInputStream(socket.getInputStream());
+    			System.out.print("Username: ");
+    			inputName = reader.readLine();
+    			User user = new User(inputName, userAddress);
+    			/*System.out.println("Username changed to " + user.getName());
+    			System.out.println("Object to be written = " + user);
+    			System.out.println("Sending writeobject");*/
+                outToServer.writeObject(user);
+                String test = (String) inFromServer.readObject();
+                System.out.println(test);
+                //System.out.println("Sent writeobject");
+                //System.out.println("Testing");
+                
             }
-        } 
-        catch (UnknownHostException e) 
-        {
-            System.err.println("Don't know about host " + hostName);
-            System.exit(1);
-        } 
-        catch (IOException e) 
-        {
-            System.err.println("Couldn't get I/O for the connection to " + hostName);
-            System.exit(1);
+    		catch (SocketException socketError) 
+    		{
+    			System.err.println(socketError.getMessage());
+            } 
+    		catch (IOException e)
+            {
+    			System.err.println(e.getMessage());
+            } catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
         }
+    }
+    
+    public static void main(String[] args) 
+    {
+        MyClient client = new MyClient();
+        client.communicate();
     }
 }

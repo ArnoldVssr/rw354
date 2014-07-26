@@ -5,17 +5,55 @@ import java.io.*;
 public class ClientHandler extends Thread 
 {
     private Socket socket = null;
+    private ObjectInputStream recieved = null;
+    private ObjectOutputStream sent = null;
+    private static HashSet<User> users = new HashSet<User>();
     
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
-     
+	
+	public static boolean containsUser(User user)
+	{
+		if (users.contains(user.getName()))
+			return true;
+		else
+		{
+			users.add((User) user);
+			return false;
+		}
+	}
+    
     public void run() {
  
         try
         {
         	System.out.println("remote Socket Address "
-                    + socket.getRemoteSocketAddress());        	
+                    + socket.getRemoteSocketAddress());
+        	
+        	recieved = new ObjectInputStream(socket.getInputStream());
+        	sent = new ObjectOutputStream(socket.getOutputStream());
+        	User cur_user = (User) recieved.readObject();
+        	
+        	if (containsUser(cur_user))
+        	{
+        		System.out.println("Name taken, notifying client");
+        		sent.writeObject("Name already taken");
+        	}
+        	else
+        	{
+        		System.out.println("Unique name, sending welcome to client");
+        		sent.writeObject("Welcome, " + cur_user.getName());
+        	}
+
+        	//System.out.println(cur_user.getName());
+        	
+        	
+        	
+        	
+        	
+        	/******************************************************************************************/
+        	
         	/*PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         	
@@ -31,11 +69,18 @@ public class ClientHandler extends Thread
                 if (outputLine.equals("Bye"))
                     break;
             }*/
-            socket.close();
+        	
+        	/******************************************************************************************/
+            
+        	
+        	//socket.close();
         }
         catch (IOException e)
         {
             e.printStackTrace();
-        }
+        } catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
     }
 }

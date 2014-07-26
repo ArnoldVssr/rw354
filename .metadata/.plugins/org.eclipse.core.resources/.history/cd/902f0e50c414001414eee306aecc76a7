@@ -1,0 +1,40 @@
+import java.net.*;
+import java.io.*;
+
+public class ClientHandler extends Thread
+{
+	private Socket newClient = null;
+		 
+    public ClientHandler(Socket socket) {
+        super("ClientHandler");
+        this.newClient = socket;
+    }
+	     
+	    public void run() {
+	 
+	        try (
+	            PrintWriter out = new PrintWriter(newClient.getOutputStream(), true);
+	            BufferedReader in = new BufferedReader(
+	                new InputStreamReader(
+	                    newClient.getInputStream()));
+	        ) {
+	            String inputLine, outputLine;
+	            Protocol kkp = new Protocol();
+	            outputLine = kkp.processInput(null);
+	            out.println(outputLine);
+	 
+	            while ((inputLine = in.readLine()) != null) {
+	                outputLine = kkp.processInput(inputLine);
+	                out.println(outputLine);
+	                if (outputLine.equals("Bye"))
+	                    break;
+	            }
+	            newClient.close();
+	        } catch (IOException e) {
+	            e.printStackTrace();
+	        }
+	    }
+
+	}
+
+}

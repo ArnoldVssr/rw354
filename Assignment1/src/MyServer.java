@@ -3,20 +3,7 @@ import java.util.HashSet;
 import java.io.*;
  
 public class MyServer 
-{
-	private static HashSet<MyClient.userob> users = new HashSet<MyClient.userob>();
-	
-	public static boolean containsUser(Object user)
-	{
-		if (users.contains((MyClient.userob) user))
-			return true;
-		else
-		{
-			users.add((MyClient.userob) user);
-			return false;
-		}
-	}
-	
+{	
     public static void main(String[] args) throws IOException 
     {
     	

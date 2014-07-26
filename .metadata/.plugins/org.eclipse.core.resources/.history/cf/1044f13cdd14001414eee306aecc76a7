@@ -1,0 +1,53 @@
+import java.net.*;
+import java.io.*;
+
+public class MyClient 
+{
+	private Socket socket = null;
+    private ObjectInputStream inFromServer = null;
+    private ObjectOutputStream outToServer = null;
+    private boolean isConnected = false;
+
+    
+    public void communicate() 
+    {
+    	String inputName = "";
+    	SocketAddress userAddress = null;
+    	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+    	
+    	while (!isConnected)
+    	{
+    		try 
+    		{
+    			socket = new Socket("localHost", 6066);
+    			System.out.println("User Connected.");
+    			isConnected = true;
+    			userAddress = socket.getRemoteSocketAddress();
+    			outToServer = new ObjectOutputStream(socket.getOutputStream());
+                inFromServer = new ObjectInputStream(socket.getInputStream());
+    			System.out.print("Username: ");
+    			inputName = reader.readLine();
+    			User user = new User(inputName, userAddress);
+    			System.out.println("Username changed to " + user.getName());
+    			System.out.println("Object to be written = " + user);
+    			System.out.println("Sending writeobject");
+                outToServer.writeObject(user);
+                System.out.println("Sent writeobject");
+            }
+    		catch (SocketException socketError) 
+    		{
+    			System.err.println("Socket error");
+            } 
+    		catch (IOException e)
+            {
+    			System.err.println("IO error");
+            }
+        }
+    }
+    
+    public static void main(String[] args) 
+    {
+        MyClient client = new MyClient();
+        client.communicate();
+    }
+}
