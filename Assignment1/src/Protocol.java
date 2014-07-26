@@ -10,7 +10,7 @@ public class Protocol
     private static final int NUMJOKES = 5;
  
     private int state = WAITING;
-    private int currentJoke = (int)((Math.random() * 5) + 1);
+    private int currentJoke = (int)((Math.random() * 5));
  
     private String[] clues = { "Turnip", "Little Old Lady", "Atch", "Who", "Who" };
     private String[] answers = { "Turnip the heat, it's cold in here!",

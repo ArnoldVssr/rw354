@@ -3,11 +3,16 @@ import java.io.*;
  
 public class MyClient 
 {
+	public class userob
+	{
+		
+	}
+	
     public static void main(String[] args) throws IOException 
     {
         String hostName = "localhost";
         int portNumber = 6066;
- 
+        
         try 
         {
 			Socket kkSocket = new Socket(hostName, portNumber);

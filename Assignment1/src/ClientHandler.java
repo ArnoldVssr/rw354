@@ -1,12 +1,12 @@
 import java.net.*;
+import java.util.HashSet;
 import java.io.*;
  
 public class ClientHandler extends Thread 
 {
     private Socket socket = null;
- 
+    
     public ClientHandler(Socket socket) {
-        super("ClientHandler");
         this.socket = socket;
     }
      
@@ -14,7 +14,9 @@ public class ClientHandler extends Thread
  
         try
         {
-        	PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        	System.out.println("remote Socket Address "
+                    + socket.getRemoteSocketAddress());        	
+        	/*PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         	
             String inputLine, outputLine;
@@ -28,7 +30,7 @@ public class ClientHandler extends Thread
                 out.println(outputLine);
                 if (outputLine.equals("Bye"))
                     break;
-            }
+            }*/
             socket.close();
         }
         catch (IOException e)
