@@ -15,11 +15,13 @@ public class ClientHandler extends Thread
 	
 	public static boolean containsUser(User user)
 	{
-		if (users.contains(user.getName()))
+		if (users.contains(user))
+		{
 			return true;
+		}
 		else
 		{
-			users.add((User) user);
+			users.add(user);
 			return false;
 		}
 	}
@@ -45,34 +47,10 @@ public class ClientHandler extends Thread
         		System.out.println("Unique name, sending welcome to client");
         		sent.writeObject("Welcome, " + cur_user.getName());
         	}
-
-        	//System.out.println(cur_user.getName());
-        	
-        	
-        	
-        	
-        	
-        	/******************************************************************************************/
-        	
-        	/*PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        	
-            String inputLine, outputLine;
-            Protocol kkp = new Protocol();
-            outputLine = kkp.processInput(null);
-            out.println(outputLine);
- 
-            while ((inputLine = in.readLine()) != null) 
-            {
-                outputLine = kkp.processInput(inputLine);
-                out.println(outputLine);
-                if (outputLine.equals("Bye"))
-                    break;
-            }*/
-        	
-        	/******************************************************************************************/
-            
-        	
+        	while(true)
+        	{
+        		System.out.println("test");
+        	}
         	//socket.close();
         }
         catch (IOException e)
