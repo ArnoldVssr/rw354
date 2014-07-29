@@ -1,0 +1,82 @@
+import java.net.*;
+import java.util.HashSet;
+import java.io.*;
+ 
+public class ClientHandler extends Thread 
+{
+    private Socket socket = null;
+    private ObjectInputStream recieved = null;
+    private ObjectOutputStream sent = null;
+    private static HashSet<User> users = new HashSet<User>();
+    
+    public ClientHandler(Socket socket) {
+        this.socket = socket;
+    }
+	
+	public static boolean containsUser(User user)
+	{
+		if (users.contains(user.getName()))
+			return true;
+		else
+		{
+			users.add((User) user);
+			return false;
+		}
+	}
+    
+    public void run() {
+ 
+        try
+        {
+        	System.out.println("remote Socket Address "
+                    + socket.getRemoteSocketAddress());
+        	
+        	recieved = new ObjectInputStream(socket.getInputStream());
+        	sent = new ObjectOutputStream(socket.getOutputStream());
+        	User cur_user = (User) recieved.readObject();
+        	
+        	if (containsUser(cur_user))
+        	{
+        		sent.writeUTF("Name already taken");
+        	}
+        		
+        	else
+        		sent.writeUTF("Welcome, " + cur_user.getName());
+        	//System.out.println(cur_user.getName());
+        	
+        	
+        	
+        	
+        	
+        	/******************************************************************************************/
+        	
+        	/*PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        	
+            String inputLine, outputLine;
+            Protocol kkp = new Protocol();
+            outputLine = kkp.processInput(null);
+            out.println(outputLine);
+ 
+            while ((inputLine = in.readLine()) != null) 
+            {
+                outputLine = kkp.processInput(inputLine);
+                out.println(outputLine);
+                if (outputLine.equals("Bye"))
+                    break;
+            }*/
+        	
+        	/******************************************************************************************/
+            
+        	
+        	//socket.close();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+}

@@ -1,0 +1,17 @@
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+
+public class Hashcode {
+
+	@Test
+	public void test() {
+		User tim = new User("Tim", "/127.0.0.1:47361");
+		User stim = new User("TiM", "127.0.0.1:47364");
+		
+		assertTrue(tim.equals(stim));
+		//assertTrue(tim.hashCode() == stim.hashCode());
+	}
+
+}

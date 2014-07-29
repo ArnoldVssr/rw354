@@ -1,0 +1,14 @@
+import static org.junit.Assert.*;
+
+import org.junit.Test;
+
+
+public class Hashcode {
+
+	@Test
+	public void test() {
+		User tim = new User(null, null);
+		User stim = new User(null, null);
+	}
+
+}
