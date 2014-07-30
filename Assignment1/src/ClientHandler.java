@@ -8,7 +8,12 @@ public class ClientHandler extends Thread
     private ObjectInputStream recieved = null;
     private ObjectOutputStream sent = null;
     private static HashSet<User> users = new HashSet<User>();
-    private static boolean unique = false;
+    
+	private static final int USER = 0;
+    private static final int WHISPER = 1;
+    private static final int LOBBY = 2;
+    private static final int HASHSET = 3;
+    private static final int BYE = 9;
     
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -31,15 +36,22 @@ public class ClientHandler extends Thread
  
         try
         {
+        	int state = 0;
+        	boolean unique = false;
         	System.out.println("remote Socket Address "
                     + socket.getRemoteSocketAddress());
         	
+    		recieved = new ObjectInputStream(socket.getInputStream());
+        	sent = new ObjectOutputStream(socket.getOutputStream());
+        	User cur_user = new User();
         	// Get unique user
         	while (!unique)
         	{
-        		recieved = new ObjectInputStream(socket.getInputStream());
-            	sent = new ObjectOutputStream(socket.getOutputStream());
-            	User cur_user = (User) recieved.readObject();
+        		state = Integer.parseInt(recieved.readObject().toString());
+        		if (state == USER)
+        		{
+        			cur_user = (User) recieved.readObject();	
+        		}
             	
             	if (containsUser(cur_user))
             	{
@@ -48,23 +60,38 @@ public class ClientHandler extends Thread
             	}
             	else
             	{
-            		System.out.println("Unique name, notiying client");
+            		System.out.println("Unique name, notifying client");
             		sent.writeObject(false);
             		unique = true;
             	}
         	}
-        	
         	// Wait user input
         	while(true)
         	{
-        		break;
+        		Object mes = recieved.readObject();
+        		if (mes.getClass().getName() == "java.lang.String")
+        		{
+        			String message = (String) mes;
+        			if (message.equalsIgnoreCase("bye"))
+        			{
+                		System.out.println("Exiting, notifying client");
+                		sent.writeObject("Closing");
+                		users.remove(cur_user);
+                    	recieved.close();
+                    	sent.close();
+                		socket.close();
+                		break;
+        			}
+        			else if(message.equalsIgnoreCase("whisp"))
+        			{
+        				
+        			}
+        			else
+            		{
+            			System.out.println(message);
+            		}
+        		}
         	}
-        	/*while(true)
-        	{
-        		System.out.println("test");
-        		
-        	}*/
-        	socket.close();
         }
         catch (IOException e)
         {
