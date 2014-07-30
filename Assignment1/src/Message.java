@@ -4,6 +4,12 @@ public class Message
 	private String toUser = "";
 	private String body = "";
 	
+	public Message()
+    {
+        this.toUser = "";
+        this.body = "";
+    }
+	
 	public Message(String toUser, String body)
     {
         this.toUser = toUser;
@@ -15,7 +21,7 @@ public class Message
 		return body;
 	}
 	
-	public String getReceiver()
+	public String getRecipient()
 	{
 		return toUser;
 	}

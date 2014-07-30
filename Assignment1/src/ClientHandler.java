@@ -10,6 +10,13 @@ public class ClientHandler extends Thread
     private static HashSet<User> users = new HashSet<User>();
     private boolean unique = false;
     
+    //enums
+    private static final int WAITING = 0;
+    private static final int MESSAGE = 1;
+    private static final int SENTCLUE = 2;
+    private static final int ANOTHER = 3;
+    private static final int NOMORE = 9;
+    
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }

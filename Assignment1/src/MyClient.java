@@ -32,7 +32,9 @@ public class MyClient
     			System.out.print("Username: ");
     			inputName = reader.readLine();
     			User user = new User(inputName, userAddress);
+    			Message message = new Message();
                 outToServer.writeObject(user);
+                
 
                 while (notUnique)
                 {
@@ -55,9 +57,19 @@ public class MyClient
                 while (!choice.toLowerCase().equals("bye"))
                 {
                 	System.out.println("What you want?");
+                	System.out.println("1)Send message to user");
+                	System.out.println("2)Connected users");
                 	choice = reader.readLine();
-                	System.out.println(choice);
                 	
+                	if (choice.equals("1"))
+                	{
+                		System.out.print("Message: ");
+                		body = reader.readLine();
+                		System.out.print("To: ");
+                		toUser = reader.readLine();
+                	}
+                	
+                	message = new Message(toUser, body);
                 }
                 outToServer.writeObject("bye");
                 socket.close();
