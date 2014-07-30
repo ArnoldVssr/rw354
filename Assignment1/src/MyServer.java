@@ -1,5 +1,4 @@
 import java.net.*;
-import java.util.HashSet;
 import java.io.*;
  
 public class MyServer 
@@ -9,13 +8,13 @@ public class MyServer
     	
 	    int portNumber = 6066;
 	    boolean listening = true;
-	     
 	    try
 	    { 
 	    	ServerSocket serverSocket = new ServerSocket(portNumber);
 	        while (listening) 
 	        {
 	            new ClientHandler(serverSocket.accept()).start();
+	            
 	        }
 	    } 
 	    catch (IOException e) 
