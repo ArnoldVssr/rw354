@@ -1,8 +1,11 @@
+import java.io.Serializable;
 
-public class Message
+
+public class Message implements Serializable
 {
 	private String toUser = "";
 	private String body = "";
+    private static final long serialVersionUID = 42L;
 	
 	public Message()
     {

@@ -16,7 +16,8 @@ public class MyClient
     	String choice = "";
     	String body = "";
     	String toUser = "";
-    	SocketAddress userAddress = null;
+    	InetAddress address;
+    	int port = -1;
     	BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
     	
     	while (!isConnected)
@@ -26,15 +27,15 @@ public class MyClient
     			socket = new Socket("localHost", 6066);
     			System.out.println("User Connected.");
     			isConnected = true;
-    			userAddress = socket.getRemoteSocketAddress();
+    			address = socket.getInetAddress();
+    			port = socket.getPort();
     			outToServer = new ObjectOutputStream(socket.getOutputStream());
                 inFromServer = new ObjectInputStream(socket.getInputStream());
     			System.out.print("Username: ");
     			inputName = reader.readLine();
-    			User user = new User(inputName, userAddress);
-    			Message message = new Message();
+    			User user = new User(inputName, address,port);
+    			outToServer.writeObject(0);
                 outToServer.writeObject(user);
-                
 
                 while (notUnique)
                 {
@@ -45,7 +46,8 @@ public class MyClient
                 		System.out.println("Name already taken");
                 		System.out.print("Username: ");
             			inputName = reader.readLine();
-            			user = new User(inputName, userAddress);
+            			user = new User(inputName, address,port);
+            			outToServer.writeObject(0);
                         outToServer.writeObject(user);
                 	}
                 	else
@@ -57,21 +59,25 @@ public class MyClient
                 while (!choice.toLowerCase().equals("bye"))
                 {
                 	System.out.println("What you want?");
-                	System.out.println("1)Send message to user");
-                	System.out.println("2)Connected users");
                 	choice = reader.readLine();
-                	
-                	if (choice.equals("1"))
+                	if (choice.equalsIgnoreCase("whisper"))
                 	{
-                		System.out.print("Message: ");
-                		body = reader.readLine();
-                		System.out.print("To: ");
-                		toUser = reader.readLine();
+                		System.out.print("User: ");
+                		String whipsUser = reader.readLine();
+                		System.out.println("Message: ");
+                		String whispMessage = reader.readLine();
+                		Message tm = new Message(whipsUser, whispMessage);
+                		//Message tm = new Message("Arnold", "Hi Arnold, this is a whipser test");
+                		outToServer.writeObject(1);
+                		outToServer.writeObject(tm);
                 	}
                 	
-                	message = new Message(toUser, body);
                 }
+                outToServer.writeObject(9);
                 outToServer.writeObject("bye");
+                System.out.println(inFromServer.toString());
+                inFromServer.close();
+                outToServer.close();
                 socket.close();
                 System.out.println(user.getName() + " disconnected");
             }

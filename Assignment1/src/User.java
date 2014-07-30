@@ -4,13 +4,22 @@ import java.net.*;
 public class User implements Serializable 
 {
     private String name;
-    private SocketAddress address;
+    private InetAddress address;
+    private int port;
     private static final long serialVersionUID = 42L;
 
-    public User(String name, SocketAddress address)
+    public User(String name,InetAddress address, int port)
     {
         this.name = name;
         this.address = address;
+        this.port = port;
+    }
+
+    public User()
+    {
+        this.name = "";
+        this.address = null;
+        this.port = -1;
     }
     
     public String getName()
@@ -18,9 +27,14 @@ public class User implements Serializable
         return name;
     }
     
-    public SocketAddress getAddress()
+    public InetAddress getAddress()
     {
     	return address;
+    }
+    
+    public int getPort()
+    {
+    	return port;
     }
 
     public void setName(String name)
@@ -45,8 +59,7 @@ public class User implements Serializable
     }
     
     @Override 
-    public int hashCode()
-    {
+    public int hashCode(){
     	String test = name.toLowerCase() + "_";
 		return test.hashCode();
 	}

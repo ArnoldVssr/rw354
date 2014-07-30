@@ -8,19 +8,17 @@ public class ClientHandler extends Thread
     private ObjectInputStream recieved = null;
     private ObjectOutputStream sent = null;
     private static HashSet<User> users = new HashSet<User>();
-    private boolean unique = false;
     
-    //enums
-    private static final int WAITING = 0;
-    private static final int MESSAGE = 1;
-    private static final int SENTCLUE = 2;
-    private static final int ANOTHER = 3;
-    private static final int NOMORE = 9;
+	private static final int USER = 0;
+    private static final int WHISPER = 1;
+    private static final int LOBBY = 2;
+    private static final int HASHSET = 3;
+    private static final int BYE = 9;
     
     public ClientHandler(Socket socket) {
         this.socket = socket;
     }
-	
+
 	public static boolean containsUser(User user)
 	{
 		if (users.contains(user))
@@ -38,40 +36,104 @@ public class ClientHandler extends Thread
  
         try
         {
+        	int state;
+        	boolean unique = false;
         	System.out.println("remote Socket Address "
                     + socket.getRemoteSocketAddress());
         	
-        	recieved = new ObjectInputStream(socket.getInputStream());
+    		recieved = new ObjectInputStream(socket.getInputStream());
         	sent = new ObjectOutputStream(socket.getOutputStream());
+        	User cur_user = new User();
+        	
+        	// Get unique user
         	while (!unique)
         	{
-	        	User cur_user = (User) recieved.readObject();
-	        	
-	        	if (containsUser(cur_user))
-	        	{
-	        		System.out.println("Name taken, notifying client");
-	        		sent.writeObject(true);
-	        	}
-	        	else
-	        	{
-	        		System.out.println("Unique name, sending welcome to client");
-	        		sent.writeObject(false);
-	        		unique = true;
-	        	}
+        		state = Integer.parseInt(recieved.readObject().toString());
+        		if (state == USER)
+        		{
+        			cur_user = (User) recieved.readObject();	
+        		}
+            	
+            	if (containsUser(cur_user))
+            	{
+            		System.out.println("Name taken, notifying client");
+            		sent.writeObject(true);
+            	}
+            	else
+            	{
+            		System.out.println("Unique name, notifying client");
+            		sent.writeObject(false);
+            		unique = true;
+            	}
         	}
+        	// Wait user input
         	while(true)
         	{
-        		//System.out.println("test");
-        		break;
+        		state = Integer.parseInt(recieved.readObject().toString());
+        		if (state == WHISPER)
+        		{
+        			Message temp = (Message) recieved.readObject();
+        			for (User a:users)
+        			{
+        				if (temp.getRecipient() == a.getName())
+        				{
+        					Socket whispSoc = new Socket(a.getAddress(), a.getPort());
+        					ObjectOutputStream whispSent = new ObjectOutputStream(whispSoc.getOutputStream());
+        					whispSent.writeObject(new Message(cur_user.getName(), temp.getMessage()));
+        					break;
+        				}
+        			}
+        		}
+        		else if (state == LOBBY)
+        		{
+        			
+        		}
+        		else if (state == HASHSET)
+        		{
+        			
+        		}
+        		else if (state == BYE)
+        		{
+        			System.out.println("Exiting, notifying client");
+            		sent.writeObject("Closing");
+            		users.remove(cur_user);
+                	recieved.close();
+                	sent.close();
+            		socket.close();
+            		break;
+        		}
+        		/*Object mes = recieved.readObject();
+        		if (mes.getClass().getName() == "java.lang.String")
+        		{
+        			String message = (String) mes;
+        			if (message.equalsIgnoreCase("bye"))
+        			{
+                		System.out.println("Exiting, notifying client");
+                		sent.writeObject("Closing");
+                		users.remove(cur_user);
+                    	recieved.close();
+                    	sent.close();
+                		socket.close();
+                		break;
+        			}
+        			else if(message.equalsIgnoreCase("whisp"))
+        			{
+        				
+        			}
+        			else
+            		{
+            			System.out.println(message);
+            		}
+        		}*/
         	}
-        	//socket.close();
         }
         catch (IOException e)
         {
             e.printStackTrace();
-        }
-        catch (ClassNotFoundException e)
+        } 
+        catch (ClassNotFoundException e) 
         {
+			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
