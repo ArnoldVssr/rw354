@@ -8,6 +8,7 @@ public class ClientHandler extends Thread
     private ObjectInputStream recieved = null;
     private ObjectOutputStream sent = null;
     private static HashSet<User> users = new HashSet<User>();
+    private static boolean unique = false;
     
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -33,30 +34,44 @@ public class ClientHandler extends Thread
         	System.out.println("remote Socket Address "
                     + socket.getRemoteSocketAddress());
         	
-        	recieved = new ObjectInputStream(socket.getInputStream());
-        	sent = new ObjectOutputStream(socket.getOutputStream());
-        	User cur_user = (User) recieved.readObject();
+        	// Get unique user
+        	while (!unique)
+        	{
+        		recieved = new ObjectInputStream(socket.getInputStream());
+            	sent = new ObjectOutputStream(socket.getOutputStream());
+            	User cur_user = (User) recieved.readObject();
+            	
+            	if (containsUser(cur_user))
+            	{
+            		System.out.println("Name taken, notifying client");
+            		sent.writeObject(true);
+            	}
+            	else
+            	{
+            		System.out.println("Unique name, notiying client");
+            		sent.writeObject(false);
+            		unique = true;
+            	}
+        	}
         	
-        	if (containsUser(cur_user))
-        	{
-        		System.out.println("Name taken, notifying client");
-        		sent.writeObject("Name already taken");
-        	}
-        	else
-        	{
-        		System.out.println("Unique name, sending welcome to client");
-        		sent.writeObject("Welcome, " + cur_user.getName());
-        	}
+        	// Wait user input
         	while(true)
         	{
-        		System.out.println("test");
+        		break;
         	}
-        	//socket.close();
+        	/*while(true)
+        	{
+        		System.out.println("test");
+        		
+        	}*/
+        	socket.close();
         }
         catch (IOException e)
         {
             e.printStackTrace();
-        } catch (ClassNotFoundException e) {
+        } 
+        catch (ClassNotFoundException e) 
+        {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}

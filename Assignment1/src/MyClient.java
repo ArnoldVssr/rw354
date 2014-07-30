@@ -29,7 +29,7 @@ public class MyClient
     			inputName = reader.readLine();
     			User user = new User(inputName, userAddress);
                 outToServer.writeObject(user);
-                String test = (String) inFromServer.readObject();
+                boolean test = (Boolean) inFromServer.readObject();
                 System.out.println(test);
             }
     		catch (SocketException socketError) 
