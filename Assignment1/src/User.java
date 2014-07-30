@@ -12,7 +12,7 @@ public class User implements Serializable
         this.name = name;
         this.address = address;
     }
-
+    
     public String getName()
     {
         return name;
@@ -45,7 +45,8 @@ public class User implements Serializable
     }
     
     @Override 
-    public int hashCode(){
+    public int hashCode()
+    {
     	String test = name.toLowerCase() + "_";
 		return test.hashCode();
 	}
