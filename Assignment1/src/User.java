@@ -45,14 +45,14 @@ public class User implements Serializable
     @Override 
     public boolean equals(Object ob)
     {
-    	if (ob == this)
+    	/*if (ob == this)
     	{
     		return true;
     	}
     	if (ob == null || ob.getClass() != this.getClass())
     	{
     		return false;
-    	}
+    	}*/
     	
     	User user = (User) ob;
     	return user.getName().equalsIgnoreCase(this.getName());

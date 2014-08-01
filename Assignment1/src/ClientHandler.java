@@ -8,6 +8,7 @@ public class ClientHandler extends Thread
     private ObjectInputStream recieved = null;
     private ObjectOutputStream sent = null;
     private static HashSet<User> users = new HashSet<User>();
+    private static User cur_user = new User();
     
 	private static final int USER = 0;
     private static final int WHISPER = 1;
@@ -16,21 +17,9 @@ public class ClientHandler extends Thread
     private static final int BYE = 9;
     
     public ClientHandler(Socket socket) {
+    	super();
         this.socket = socket;
     }
-
-	public static boolean containsUser(User user)
-	{
-		if (users.contains(user))
-		{
-			return true;
-		}
-		else
-		{
-			users.add(user);
-			return false;
-		}
-	}
     
     public void run() {
  
@@ -43,26 +32,30 @@ public class ClientHandler extends Thread
         	
     		recieved = new ObjectInputStream(socket.getInputStream());
         	sent = new ObjectOutputStream(socket.getOutputStream());
-        	User cur_user = new User();
         	
+        	System.out.println("Before while");
         	// Get unique user
         	while (!unique)
         	{
         		state = Integer.parseInt(recieved.readObject().toString());
+        		System.out.println("state: " + state);
         		if (state == USER)
         		{
-        			cur_user = (User) recieved.readObject();	
+        			System.out.println(cur_user.getName());
+        			cur_user = (User) recieved.readObject();
+        			System.out.println(cur_user.getName());
         		}
             	
-            	if (containsUser(cur_user))
+            	if (users.contains(cur_user))
             	{
-            		System.out.println("Name taken, notifying client");
             		sent.writeObject(true);
+            		System.out.println("Name taken, notifying client");
             	}
             	else
             	{
-            		System.out.println("Unique name, notifying client");
+            		users.add(cur_user);
             		sent.writeObject(false);
+            		System.out.println("Unique name, notifying client");
             		unique = true;
             	}
         	}
@@ -73,11 +66,15 @@ public class ClientHandler extends Thread
         		if (state == WHISPER)
         		{
         			Message temp = (Message) recieved.readObject();
+        			System.out.println("Server got this...");
+        			System.out.println(temp.getRecipient() + ": " + temp.getMessage());
         			for (User a:users)
         			{
-        				if (temp.getRecipient() == a.getName())
+        				if (temp.getRecipient().equalsIgnoreCase(a.getName()))
         				{
+            				System.out.println("found suitable");
         					Socket whispSoc = new Socket(a.getAddress(), a.getPort());
+        					System.out.println(cur_user.getName() + " " + temp.getMessage());
         					ObjectOutputStream whispSent = new ObjectOutputStream(whispSoc.getOutputStream());
         					whispSent.writeObject(new Message(cur_user.getName(), temp.getMessage()));
         					break;
@@ -102,29 +99,6 @@ public class ClientHandler extends Thread
             		socket.close();
             		break;
         		}
-        		/*Object mes = recieved.readObject();
-        		if (mes.getClass().getName() == "java.lang.String")
-        		{
-        			String message = (String) mes;
-        			if (message.equalsIgnoreCase("bye"))
-        			{
-                		System.out.println("Exiting, notifying client");
-                		sent.writeObject("Closing");
-                		users.remove(cur_user);
-                    	recieved.close();
-                    	sent.close();
-                		socket.close();
-                		break;
-        			}
-        			else if(message.equalsIgnoreCase("whisp"))
-        			{
-        				
-        			}
-        			else
-            		{
-            			System.out.println(message);
-            		}
-        		}*/
         	}
         }
         catch (IOException e)
@@ -133,8 +107,7 @@ public class ClientHandler extends Thread
         } 
         catch (ClassNotFoundException e) 
         {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
+		} 
     }
 }

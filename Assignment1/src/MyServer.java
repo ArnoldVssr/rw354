@@ -11,7 +11,7 @@ public class MyServer
 	    boolean listening = true;
 	     
 	    try
-	    { 
+	    {
 	    	ServerSocket serverSocket = new ServerSocket(portNumber);
 	        while (listening) 
 	        {
