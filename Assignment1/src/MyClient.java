@@ -78,7 +78,10 @@ public class MyClient
 					}
 					try
 					{
-						Message mtemp = (Message) inFromServer.readObject();
+						byte[] btemp = new byte[5000];
+						inFromServer.readFully(btemp);
+						Message mtemp = (Message) ClientHandler.toObject(btemp);
+						//Message mtemp = (Message) inFromServer.readObject();
 					}
 					finally
 					{

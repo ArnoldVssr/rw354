@@ -1,5 +1,9 @@
 import java.net.*;
+import java.util.Dictionary;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.io.*;
  
 public class ClientHandler extends Thread 
@@ -8,6 +12,7 @@ public class ClientHandler extends Thread
     private ObjectInputStream recieved = null;
     private ObjectOutputStream sent = null;
     private static HashSet<User> users = new HashSet<User>();
+    private static Map<String,Socket> Maptest = new HashMap<String,Socket>();
     private static User cur_user = new User();
     
 	private static final int USER = 0;
@@ -19,6 +24,41 @@ public class ClientHandler extends Thread
     public ClientHandler(Socket socket) {
     	super();
         this.socket = socket;
+    }
+    
+    public static byte[] toByteArray (Object obj)
+    {
+      byte[] bytes = null;
+      ByteArrayOutputStream bos = new ByteArrayOutputStream();
+      try {
+        ObjectOutputStream oos = new ObjectOutputStream(bos); 
+        oos.writeObject(obj);
+        oos.flush(); 
+        oos.close(); 
+        bos.close();
+        bytes = bos.toByteArray ();
+      }
+      catch (IOException ex) {
+        //TODO: Handle the exception
+      }
+      return bytes;
+    }
+        
+    public static Object toObject (byte[] bytes)
+    {
+      Object obj = null;
+      try {
+        ByteArrayInputStream bis = new ByteArrayInputStream (bytes);
+        ObjectInputStream ois = new ObjectInputStream (bis);
+        obj = ois.readObject();
+      }
+      catch (IOException ex) {
+        //TODO: Handle the exception
+      }
+      catch (ClassNotFoundException ex) {
+        //TODO: Handle the exception
+      }
+      return obj;
     }
     
     public void run() {
@@ -54,6 +94,7 @@ public class ClientHandler extends Thread
             	else
             	{
             		users.add(cur_user);
+            		Maptest.put(cur_user.getName(),socket);
             		sent.writeObject(false);
             		System.out.println("Unique name, notifying client");
             		unique = true;
@@ -65,10 +106,25 @@ public class ClientHandler extends Thread
         		state = Integer.parseInt(recieved.readObject().toString());
         		if (state == WHISPER)
         		{
-        			Message temp = (Message) recieved.readObject();
+        			Object temp = (Object) recieved.readObject();
         			System.out.println("Server got this...");
-        			System.out.println(temp.getRecipient() + ": " + temp.getMessage());
-        			for (User a:users)
+        			System.out.println(((Message)temp).getRecipient() + ": " + ((Message)temp).getMessage());
+        			Socket whispt = Maptest.get(((Message)temp).getRecipient());
+        			if (whispt != null)
+        			{
+        				byte[] tbytearr = toByteArray(temp);
+        				whispt.getOutputStream().write(tbytearr);
+        				/*ObjectOutputStream whispSent = new ObjectOutputStream(whispt.getOutputStream());
+        				whispSent.writeObject(new Message(cur_user.getName(),temp.getMessage()));
+        				whispSent.flush();*/
+        				//whispSent.close();
+        				//whispSent.writeObject(new Message(cur_user.getName(), temp.getMessage()));
+        				/*whispSent.flush();
+        				whispSent.close();
+        				whispt = null;*/
+        				break;
+        			}
+        			/*for (User a:users)
         			{
         				if (temp.getRecipient().equalsIgnoreCase(a.getName()))
         				{
@@ -79,7 +135,7 @@ public class ClientHandler extends Thread
         					whispSent.writeObject(new Message(cur_user.getName(), temp.getMessage()));
         					break;
         				}
-        			}
+        			}*/
         		}
         		else if (state == LOBBY)
         		{

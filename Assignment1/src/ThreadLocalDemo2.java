@@ -29,7 +29,7 @@ class MyThread extends Thread
 	{
 		//System.out.println(MyClitest);
 		String inputName = "";
-		String choice = "";
+		Object choice = "";
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		while(connected)
@@ -70,31 +70,48 @@ class MyThread extends Thread
 					}
 				}
 				//System.out.println("TLD out of unique name");
-				
-				while(!choice.equalsIgnoreCase("bye"))
+				String tchoice = "";
+				try
 				{
-					System.out.println("TLD entered bye loop");
-					synchronized(MyClient.lock)
+					tchoice = (String) choice;
+				}
+				finally
+				{
+					
+				}
+				while(!tchoice.equalsIgnoreCase("bye"))
+				{
+					//System.out.println("TLD entered bye loop");
+					//synchronized(MyClient.lock)
+					//{
+					System.out.println("What you want?");
+					choice = reader.readLine();
+					try
 					{
-						System.out.println("What you want?");
-						choice = reader.readLine();
-						if (choice.equalsIgnoreCase("whisper"))
-	                	{
-	                		System.out.print("User: ");
-	                		String username = reader.readLine();
-	                		System.out.println("Message: ");
-	                		String message = reader.readLine();
-	                		Message tm = new Message(username, message);
-	                		MyClient.outToServer.writeObject(1);
-							MyClient.outToServer.writeObject(tm);
-	                	}
-						MyClient.readBusy = false;
-						MyClient.lock.notifyAll();
+						tchoice = (String) choice;
 					}
+					finally
+					{
+						if (tchoice != (String) choice)
+							System.out.println(((Message) choice).getMessage());
+					}
+					if (tchoice.equalsIgnoreCase("whisper"))
+                	{
+                		System.out.print("User: ");
+                		String username = reader.readLine();
+                		System.out.println("Message: ");
+                		String message = reader.readLine();
+                		Message tm = new Message(username, message);
+                		MyClient.outToServer.writeObject(1);
+						MyClient.outToServer.writeObject(tm);
+                	}
+					/*MyClient.readBusy = false;
+						//MyClient.lock.notifyAll();
+					//}
 					while(!MyClient.readBusy)
 					{
 						MyThread.sleep(200);
-					}
+					}*/
 				}
 			} 
 			catch (IOException e) 
