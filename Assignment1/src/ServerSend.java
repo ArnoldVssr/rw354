@@ -18,6 +18,7 @@ public class ServerSend implements Runnable
 	{
 		if (!socket.isConnected())
 		{
+			//fixed
 			for (int i = 0; i < Server.connectionList.size(); i++)
 			{
 				if (Server.connectionList.get(i) == socket)
@@ -26,6 +27,7 @@ public class ServerSend implements Runnable
 				}
 			}
 			
+			//fixed
 			for (int i = 0; i < Server.connectionList.size(); i++)
 			{
 				Socket temp = (Socket) Server.connectionList.get(i);
@@ -57,17 +59,61 @@ public class ServerSend implements Runnable
 					}
 					
 					message = input.nextLine();
-					System.out.println("OUT_SERVERRETURN_RUN: " + message);
+					String option = message.substring(0, 3);
+					System.out.println("server got this message: " + message);
 					
-					for (int i = 0; i < Server.connectionList.size(); i++)
+					if (option.equals("@*&"))
 					{
-						Socket echoSocket = Server.connectionList.get(i);
-						PrintWriter tempWriter = new PrintWriter(echoSocket.getOutputStream());
-						System.out.println("OUT_serverReturn_run: " + message);
-						tempWriter.println(message);
-						tempWriter.flush();
+						System.out.println("got a whisper");
+						String temp = message.substring(3);				
+						int endUser = temp.indexOf("(!}");
+						String sender = temp.substring(0, endUser);
 						
-						System.out.println("Message sent to "+ echoSocket.getLocalAddress().getHostName());
+						
+						temp = temp.substring(endUser+3, temp.length());
+						endUser = temp.indexOf("<$%");
+						String recipient = temp.substring(0, endUser);
+						
+						temp = temp.substring(endUser+3, temp.length());
+						
+						System.out.println("isUser there: " + Server.userList.contains(recipient));
+						
+						System.out.println("users are: ");
+						//moet fix
+						for (int i = 0; i < Server.userList.size(); i++)
+						{
+							String user = (String) Server.userList.get(i);
+							if (user.equalsIgnoreCase(recipient))
+							{
+								Socket tmpSocket = Server.connectionList.get(i);
+								PrintWriter tempWriter = new PrintWriter(tmpSocket.getOutputStream());
+								tempWriter.println("[" + sender + "]: " + temp);
+								tempWriter.flush();
+							}
+							if (user.equalsIgnoreCase(sender))
+							{
+								Socket tmpSocket = Server.connectionList.get(i);
+								PrintWriter tempWriter = new PrintWriter(tmpSocket.getOutputStream());
+								tempWriter.println("[" + sender + "]: " + temp);
+								tempWriter.flush();
+							}
+							
+						}
+						System.out.println("whisper sent");
+						
+					}
+					else
+					{
+						//fixed
+						for (int i = 0; i < Server.connectionList.size(); i++)
+						{
+							Socket echoSocket = Server.connectionList.get(i);
+							PrintWriter tempWriter = new PrintWriter(echoSocket.getOutputStream());
+							tempWriter.println(message);
+							tempWriter.flush();
+							
+							System.out.println("Message sent to "+ echoSocket.getLocalAddress().getHostName());
+						}
 					}
 				}
 			}

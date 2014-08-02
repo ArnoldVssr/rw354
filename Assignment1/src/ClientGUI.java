@@ -33,6 +33,15 @@ public class ClientGUI
 	private static JLabel enterUserNameLabel = new JLabel("Enter username: ");
 	private static JPanel loginPane = new JPanel();
 	
+	//whisper Window
+	public static JFrame whisperWindow = new JFrame();
+	public static JTextField toUserField = new JTextField(20);
+	public static JTextField whisperMessageField = new JTextField(20);
+	private static JButton sendOneButton = new JButton("Send");
+	private static JLabel toUserLabel = new JLabel("Enter username: ");
+	private static JLabel whisperMessageLabel = new JLabel("Enter username: ");
+	private static JPanel whisperPane = new JPanel();
+	
 	public static void main(String[] args)
 	{
 		BuildMainWindow();
@@ -43,9 +52,10 @@ public class ClientGUI
 	{
 		mainWindow.setTitle("Cr@p Talk");
 		mainWindow.setSize(500, 320);
+		mainWindow.setResizable(false);
 		ConfigureMainWindow();
 		MainWindowAction();
-		mainWindow.setVisible(true);
+		BuildLoginWindow();
 	}
 	
 	public static void Initialize()
@@ -73,6 +83,9 @@ public class ClientGUI
 			output.println(userName);
 			output.flush();
 			
+			loginWindow.setVisible(false);
+			mainWindow.setVisible(true);
+			
 			Thread clientThread = new Thread(chatClient);
 			clientThread.start();
 		}
@@ -92,19 +105,15 @@ public class ClientGUI
 		
 		sendButton.setText("Send");
 		mainWindow.getContentPane().add(sendButton);
-		sendButton.setBounds(248, 40, 81, 25);
-		
-		whisperButton.setText("Whisper");
-		mainWindow.getContentPane().add(whisperButton);
-		whisperButton.setBounds(338, 40, 100, 25);
+		sendButton.setBounds(130, 40, 115, 25);
 		
 		disconnectButton.setText("Disconnect");
 		mainWindow.getContentPane().add(disconnectButton);
-		disconnectButton.setBounds(10, 40, 115, 25);
+		disconnectButton.setBounds(350, 40, 115, 25);
 		
-		connectButton.setText("Connect");
-		mainWindow.getContentPane().add(connectButton);
-		connectButton.setBounds(130, 40, 110, 25);
+		whisperButton.setText("Whisper");
+		mainWindow.getContentPane().add(whisperButton);
+		whisperButton.setBounds(10, 40, 115, 25);
 		
 		messageLabel.setText("Message:");
 		mainWindow.getContentPane().add(messageLabel);
@@ -143,7 +152,7 @@ public class ClientGUI
 		
 		userNameLabel.setText("");
 		mainWindow.getContentPane().add(userNameLabel);
-		userNameLabel.setBounds(348, 0 , 140, 15);
+		userNameLabel.setBounds(300, 10 , 140, 15);
 		
 		userNameBox.setHorizontalAlignment(SwingConstants.CENTER);
 		mainWindow.getContentPane().add(userNameBox);
@@ -168,13 +177,13 @@ public class ClientGUI
 	public static void DoLogin()
 	{
 		enterButton.addActionListener(
-				new java.awt.event.ActionListener()
+			new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent event)
 				{
-					public void actionPerformed(java.awt.event.ActionEvent event)
-					{
-						EnterChat();
-					}
-				});
+					EnterChat();
+				}
+			});
 	}
 	
 	public static void EnterChat()
@@ -183,9 +192,6 @@ public class ClientGUI
 		{		
 			String tempName = userNameBoxField.getText().trim();		
 			userName = tempName;
-			//userNameLabel.setText("Username: " + userName);
-			mainWindow.setTitle(userName);
-			//Server.userList.add(userName);
 			loginWindow.setVisible(false);
 			sendButton.setEnabled(true);
 			whisperButton.setEnabled(true);
@@ -207,7 +213,7 @@ public class ClientGUI
 			{
 				public void actionPerformed(java.awt.event.ActionEvent event)
 				{
-					SendMessage();
+					SendButton();
 				}
 			});
 		
@@ -216,7 +222,7 @@ public class ClientGUI
 			{
 				public void actionPerformed(java.awt.event.ActionEvent event)
 				{
-					Disconnect();
+					DisconnectButton();
 				}
 			});
 		
@@ -225,24 +231,101 @@ public class ClientGUI
 			{
 				public void actionPerformed(java.awt.event.ActionEvent event)
 				{
-					System.out.println("Connected clicked");
 					BuildLoginWindow();
+				}
+			});
+		
+		whisperButton.addActionListener(
+				new java.awt.event.ActionListener()
+				{
+					public void actionPerformed(java.awt.event.ActionEvent event)
+					{
+						BuildWhisperWindow();
+					}
+				});
+	}
+	
+	public static void BuildWhisperWindow()
+	{
+		whisperWindow = new JFrame();
+		toUserField = new JTextField(20);
+		whisperMessageField = new JTextField(20);
+		sendOneButton = new JButton("Send");
+		toUserLabel = new JLabel("Enter username: ");
+		whisperMessageLabel = new JLabel("Enter Message: ");
+		whisperPane = new JPanel();
+		
+		whisperWindow.setTitle("Cr@p Whisper");
+		whisperWindow.setSize(400, 180);
+		whisperWindow.getContentPane().setLayout(null);
+		
+		toUserLabel.setText("Username: ");
+		whisperWindow.getContentPane().add(toUserLabel);
+		toUserLabel.setBounds(15, 10, 100, 20);
+		
+		toUserField.requestFocus();
+		whisperWindow.getContentPane().add(toUserField);
+		toUserField.setBounds(105, 5, 200, 30);
+
+		whisperMessageLabel.setText("Message:");
+		whisperWindow.getContentPane().add(whisperMessageLabel);
+		whisperMessageLabel.setBounds(15, 50, 100, 20);
+		
+		whisperWindow.getContentPane().add(whisperMessageField);
+		whisperMessageField.setBounds(105, 50, 200, 30);
+		
+		sendOneButton.setText("Send");
+		whisperWindow.getContentPane().add(sendOneButton);
+		sendOneButton.setBounds(105, 100, 80, 25);
+		
+		SendWhisper();
+		whisperWindow.setVisible(true);		
+	}
+	
+	public static void SendWhisper()
+	{
+		sendOneButton.addActionListener(
+			new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent event)
+				{
+					WhisperButton();
 				}
 			});
 	}
 	
-	public static void SendMessage()
+	public static void WhisperButton()
+	{
+		if (!whisperMessageField.getText().equals("") && !toUserField.getText().equals(""))
+		{
+			String whisper = "@*&" + userName + "(!}" + toUserField.getText() + "<$%" + whisperMessageField.getText();
+			chatClient.SendW(whisper);
+			toUserField.requestFocus();
+		}
+		else
+		{
+			if (!whisperMessageField.getText().equals(""))
+			{
+				JOptionPane.showMessageDialog(null, "Cannot send an empty message.");
+			}
+			else
+			{
+				JOptionPane.showMessageDialog(null, "Please provide a username to send message to.");
+			}
+		}
+	}
+	
+	
+	public static void SendButton()
 	{
 		if (!messageField.getText().equals(""))
 		{		
-			
-			System.out.println("clientgui_ActionBsend: "+ messageField.getText());
 			chatClient.Send(messageField.getText());
 			messageField.requestFocus();
 		}
 	}
 	
-	public static void Disconnect()
+	public static void DisconnectButton()
 	{
 		try
 		{

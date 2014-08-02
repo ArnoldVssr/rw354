@@ -21,9 +21,7 @@ public class Server
 			{
 				Socket clientSocket = serverSocket.accept();
 				connectionList.add(clientSocket);
-				System.out.println("before add iuserClient connected from: " + clientSocket.getLocalAddress().getHostName());
 				
-				//////////////////////////////////////////////////////////////////////////////////////////////////
 				String userName = "";
 				boolean unique = false;
 				while (unique == false)
@@ -32,32 +30,18 @@ public class Server
 					PrintWriter userOutput = new PrintWriter(clientSocket.getOutputStream());
 					userName = userInput.nextLine();
 					
-					System.out.println("from client got: " + userName);
-				
-					System.out.println("Does user exist: " + uniqueUser.contains(userName.toLowerCase()));
 					if (uniqueUser.contains(userName.toLowerCase()))
 					{
-						System.out.println("sent false");
 						userOutput = new PrintWriter(clientSocket.getOutputStream());
 						userOutput.println("%^&false");
 						userOutput.flush();
 					}
 					else
 					{
-						System.out.println("sent true");
 						unique = true;
 					}
-				}
+				}				
 				
-				System.out.println("out of while with unique: " + unique);
-				System.out.println("username is: " + userName);
-				
-				for (int i = 0; i < userList.size(); i++) {
-					System.out.println((String) userList.get(i));
-					
-				}
-				
-				///////////////////////////////////////////////////////////////////////////////////////////////////
 				AddUserName(userName);
 				
 				ServerSend chat = new ServerSend(clientSocket);
@@ -78,15 +62,15 @@ public class Server
 		userList.add(userName);
 		uniqueUser.add(userName.toLowerCase());
 		ClientGUI.userName = userName;
-		
 		ClientGUI.userNameLabel.setText("Username: " + userName);
+		ClientGUI.mainWindow.setTitle("Cr@p Talk: "+ userName);
 		
+		//fixed
 		for (int i = 0; i < Server.connectionList.size(); i++)
 		{
 			Socket newOnlineUser = (Socket) Server.connectionList.get(i);
 			PrintWriter userOutput = new PrintWriter(newOnlineUser.getOutputStream());
 			userOutput.println("#?!" + userList);
-			//userOutput.println(userList);
 			userOutput.flush();
 		}
 	}

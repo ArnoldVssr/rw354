@@ -15,7 +15,6 @@ public class Client implements Runnable
 	Scanner input;
 	Scanner send = new Scanner(System.in);
 	PrintWriter output;
-	String ID;
 	
 	//log in window
 	public static JFrame loginWindowRE = new JFrame();
@@ -66,7 +65,6 @@ public class Client implements Runnable
 		if (input.hasNext())
 		{
 			String message = input.nextLine();
-			System.out.println("Client received: " + message);
 			String option = message.substring(0, 3);
 			
 			if (option.equals("#?!"))
@@ -86,6 +84,12 @@ public class Client implements Runnable
 			}
 			else if (option.equals("%^&"))
 			{
+				loginWindowRE = new JFrame();
+				userNameBoxFieldRE = new JTextField(20);
+				enterButtonRE = new JButton("Enter");
+				enterUserNameLabelRE = new JLabel("Enter username: ");
+				loginPaneRE = new JPanel();
+
 				JOptionPane.showMessageDialog(null, "Username taken, please input a unique username.");
 				loginWindowRE.setTitle("Username taken.");
 				loginWindowRE.setSize(400, 100);
@@ -96,12 +100,11 @@ public class Client implements Runnable
 				loginPaneRE.add(enterButtonRE);
 				loginWindowRE.add(loginPaneRE);
 				System.out.println("stared RElogin action");
-				Login_Action();
+				RELoginAction();
 				loginWindowRE.setVisible(true);
 			}
 			else
 			{
-				System.out.println("this is the message: " + message);
 				ClientGUI.chatArea.append(message + "\n");
 			}
 		}
@@ -123,28 +126,34 @@ public class Client implements Runnable
 		ClientGUI.messageField.setText("");
 	}
 	
-	public void Login_Action()
+	public void SendW(String whisper)
 	{
-		enterButtonRE.addActionListener(
-				new java.awt.event.ActionListener()
-				{
-					public void actionPerformed(java.awt.event.ActionEvent event)
-					{
-						Action_B_Enter();
-					}
-				});
+		output.println(whisper);
+		output.flush();
+		ClientGUI.whisperMessageField.setText("");
+		ClientGUI.toUserField.setText("");
+		ClientGUI.whisperWindow.setVisible(false);
 	}
 	
-	public void Action_B_Enter()
+	public void RELoginAction()
+	{
+		enterButtonRE.addActionListener(
+			new java.awt.event.ActionListener()
+			{
+				public void actionPerformed(java.awt.event.ActionEvent event)
+				{
+					EnterButton();
+				}
+			});
+	}
+	
+	public void EnterButton()
 	{
 		if (!userNameBoxFieldRE.getText().equals(""))
 		{		
 			String tempName = userNameBoxFieldRE.getText().trim();		
 			ClientGUI.userName = tempName;
-			//userNameLabel.setText("Username: " + userName);
-			//Server.userList.add(userName);
 			loginWindowRE.setVisible(false);
-			System.out.println("Doing connect");
 			output.println(tempName);
 			output.flush();
 		}
