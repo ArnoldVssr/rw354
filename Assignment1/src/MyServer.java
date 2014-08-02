@@ -10,18 +10,13 @@ public class MyServer
 	    int portNumber = 6066;
 	    boolean listening = true;
 	     
-	    try
-	    {
-	    	ServerSocket serverSocket = new ServerSocket(portNumber);
-	        while (listening) 
-	        {
+	    try (ServerSocket serverSocket = new ServerSocket(portNumber)) { 
+            while (listening) {
 	            new ClientHandler(serverSocket.accept()).start();
 	        }
-	    } 
-	    catch (IOException e) 
-	    {
-	        System.err.println("Could not listen on port " + portNumber);
-	        System.exit(-1);
-	    }
+	    } catch (IOException e) {
+            System.err.println("Could not listen on port " + portNumber);
+            System.exit(-1);
+        }
     }
 }

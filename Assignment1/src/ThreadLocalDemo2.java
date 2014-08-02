@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.Socket;
 
 class ThreadLocalDemo2
 {
@@ -19,17 +20,19 @@ class MyThread extends Thread
 {
 	//private MyClient test;
 	//private static ThreadLocal tl = new ThreadLocal ();
+	private static Socket socket = null;
 	private static boolean connected = true;
-	MyThread (String name)
+	MyThread (String name, Socket socket)
 	{
 		super (name);
+		this.socket = socket;
 		//this.test = a;
 	}
 	public void run ()
 	{
 		//System.out.println(MyClitest);
 		String inputName = "";
-		Object choice = "";
+		String choice = "";
 		BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
 		while(connected)
@@ -42,7 +45,7 @@ class MyThread extends Thread
 					System.out.println("User Connected.");
 					System.out.print("Username: ");
 					inputName = reader.readLine();
-					MyClient.user.setName(inputName);
+					MyClient.username = inputName;
 					MyClient.readBusy = false;	
 					MyClient.lock.notify();
 				}
@@ -69,49 +72,30 @@ class MyThread extends Thread
 						MyThread.sleep(200);
 					}
 				}
-				//System.out.println("TLD out of unique name");
-				String tchoice = "";
-				try
+				
+				while(!choice.equalsIgnoreCase("bye"))
 				{
-					tchoice = (String) choice;
-				}
-				finally
-				{
-					
-				}
-				while(!tchoice.equalsIgnoreCase("bye"))
-				{
-					//System.out.println("TLD entered bye loop");
-					//synchronized(MyClient.lock)
-					//{
 					System.out.println("What you want?");
 					choice = reader.readLine();
-					try
-					{
-						tchoice = (String) choice;
-					}
-					finally
-					{
-						if (tchoice != (String) choice)
-							System.out.println(((Message) choice).getMessage());
-					}
-					if (tchoice.equalsIgnoreCase("whisper"))
+					
+					if (choice.equalsIgnoreCase("whisper"))
                 	{
                 		System.out.print("User: ");
                 		String username = reader.readLine();
                 		System.out.println("Message: ");
                 		String message = reader.readLine();
-                		Message tm = new Message(username, message);
-                		MyClient.outToServer.writeObject(1);
-						MyClient.outToServer.writeObject(tm);
+                		Message whisp = new Message(MyClient.username,username, message);
+                		System.out.println("Sending message");
+                		socket.getOutputStream().write(1);
+                		byte[] bm = new byte[socket.getSendBufferSize()];
+                		bm = ClientHandler.toByteArray(whisp);
+                		socket.getOutputStream().write(bm);
                 	}
-					/*MyClient.readBusy = false;
-						//MyClient.lock.notifyAll();
-					//}
-					while(!MyClient.readBusy)
+					if (choice.equalsIgnoreCase("bye"))
 					{
-						MyThread.sleep(200);
-					}*/
+						System.out.println("Closing...");
+						socket.getOutputStream().write(9);
+					}
 				}
 			} 
 			catch (IOException e) 

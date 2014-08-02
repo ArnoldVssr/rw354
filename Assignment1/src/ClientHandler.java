@@ -1,4 +1,5 @@
 import java.net.*;
+import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -8,9 +9,10 @@ import java.io.*;
  
 public class ClientHandler extends Thread 
 {
-    private Socket socket = null;
-    private ObjectInputStream recieved = null;
-    private ObjectOutputStream sent = null;
+	
+	private Socket socket = null;
+	private static byte[] sendbuf = null;
+	private static byte[] recbuf = null;
     private static HashSet<User> users = new HashSet<User>();
     private static Map<String,Socket> Maptest = new HashMap<String,Socket>();
     private static User cur_user = new User();
@@ -21,44 +23,10 @@ public class ClientHandler extends Thread
     private static final int HASHSET = 3;
     private static final int BYE = 9;
     
-    public ClientHandler(Socket socket) {
+    public ClientHandler(Socket socket)
+    {
     	super();
-        this.socket = socket;
-    }
-    
-    public static byte[] toByteArray (Object obj)
-    {
-      byte[] bytes = null;
-      ByteArrayOutputStream bos = new ByteArrayOutputStream();
-      try {
-        ObjectOutputStream oos = new ObjectOutputStream(bos); 
-        oos.writeObject(obj);
-        oos.flush(); 
-        oos.close(); 
-        bos.close();
-        bytes = bos.toByteArray ();
-      }
-      catch (IOException ex) {
-        //TODO: Handle the exception
-      }
-      return bytes;
-    }
-        
-    public static Object toObject (byte[] bytes)
-    {
-      Object obj = null;
-      try {
-        ByteArrayInputStream bis = new ByteArrayInputStream (bytes);
-        ObjectInputStream ois = new ObjectInputStream (bis);
-        obj = ois.readObject();
-      }
-      catch (IOException ex) {
-        //TODO: Handle the exception
-      }
-      catch (ClassNotFoundException ex) {
-        //TODO: Handle the exception
-      }
-      return obj;
+    	this.socket = socket;
     }
     
     public void run() {
@@ -70,72 +38,49 @@ public class ClientHandler extends Thread
         	System.out.println("remote Socket Address "
                     + socket.getRemoteSocketAddress());
         	
-    		recieved = new ObjectInputStream(socket.getInputStream());
-        	sent = new ObjectOutputStream(socket.getOutputStream());
+        	sendbuf = new byte[socket.getSendBufferSize()];
+        	recbuf = new byte[socket.getReceiveBufferSize()];
         	
-        	System.out.println("Before while");
-        	// Get unique user
         	while (!unique)
         	{
-        		state = Integer.parseInt(recieved.readObject().toString());
-        		System.out.println("state: " + state);
+        		state = socket.getInputStream().read();
         		if (state == USER)
         		{
-        			System.out.println(cur_user.getName());
-        			cur_user = (User) recieved.readObject();
-        			System.out.println(cur_user.getName());
+        			socket.getInputStream().read(recbuf);
+        			cur_user = (User)toObject(recbuf);
+        			
+        			if (users.contains(cur_user))
+        			{
+        				System.out.println("Not unique, notifying client");
+        				sendbuf = toByteArray(true);
+        				socket.getOutputStream().write(sendbuf);
+        			}
+        			else
+        			{
+        				System.out.println("Unique, notifying client");
+        				unique = true;
+        				users.add(cur_user);
+        				Maptest.put(cur_user.getName(),socket);
+        				sendbuf = toByteArray(false);
+        				socket.getOutputStream().write(sendbuf);
+        			}
         		}
-            	
-            	if (users.contains(cur_user))
-            	{
-            		sent.writeObject(true);
-            		System.out.println("Name taken, notifying client");
-            	}
-            	else
-            	{
-            		users.add(cur_user);
-            		Maptest.put(cur_user.getName(),socket);
-            		sent.writeObject(false);
-            		System.out.println("Unique name, notifying client");
-            		unique = true;
-            	}
         	}
-        	// Wait user input
+        	
         	while(true)
         	{
-        		state = Integer.parseInt(recieved.readObject().toString());
+        		state = socket.getInputStream().read();
         		if (state == WHISPER)
         		{
-        			Object temp = (Object) recieved.readObject();
-        			System.out.println("Server got this...");
-        			System.out.println(((Message)temp).getRecipient() + ": " + ((Message)temp).getMessage());
-        			Socket whispt = Maptest.get(((Message)temp).getRecipient());
-        			if (whispt != null)
+        			socket.getInputStream().read(recbuf);
+        			Message Temp = (Message) toObject(recbuf);
+        			Socket rec = Maptest.get(Temp.getRecipient());
+        			if (rec != null)
         			{
-        				byte[] tbytearr = toByteArray(temp);
-        				whispt.getOutputStream().write(tbytearr);
-        				/*ObjectOutputStream whispSent = new ObjectOutputStream(whispt.getOutputStream());
-        				whispSent.writeObject(new Message(cur_user.getName(),temp.getMessage()));
-        				whispSent.flush();*/
-        				//whispSent.close();
-        				//whispSent.writeObject(new Message(cur_user.getName(), temp.getMessage()));
-        				/*whispSent.flush();
-        				whispSent.close();
-        				whispt = null;*/
-        				break;
+        				sendbuf = toByteArray(Temp);
+        				rec.getOutputStream().write(sendbuf);
+        				rec.getOutputStream().flush();
         			}
-        			/*for (User a:users)
-        			{
-        				if (temp.getRecipient().equalsIgnoreCase(a.getName()))
-        				{
-            				System.out.println("found suitable");
-        					Socket whispSoc = new Socket(a.getAddress(), a.getPort());
-        					System.out.println(cur_user.getName() + " " + temp.getMessage());
-        					ObjectOutputStream whispSent = new ObjectOutputStream(whispSoc.getOutputStream());
-        					whispSent.writeObject(new Message(cur_user.getName(), temp.getMessage()));
-        					break;
-        				}
-        			}*/
         		}
         		else if (state == LOBBY)
         		{
@@ -148,10 +93,13 @@ public class ClientHandler extends Thread
         		else if (state == BYE)
         		{
         			System.out.println("Exiting, notifying client");
-            		sent.writeObject("Closing");
+        			Message send = new Message("server", cur_user.getName(),"closing");
+            		sendbuf = ClientHandler.toByteArray(send);
+            		socket.getOutputStream().write(sendbuf);
+            		socket.getOutputStream().close();
+            		socket.getInputStream().close();
             		users.remove(cur_user);
-                	recieved.close();
-                	sent.close();
+            		Maptest.remove(cur_user);
             		socket.close();
             		break;
         		}
@@ -161,9 +109,51 @@ public class ClientHandler extends Thread
         {
             e.printStackTrace();
         } 
-        catch (ClassNotFoundException e) 
+        /*catch (ClassNotFoundException e) 
         {
 			e.printStackTrace();
-		} 
+		} */ catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
+    public static byte[] toByteArray(Object obj) throws IOException {
+        byte[] bytes = null;
+        ByteArrayOutputStream bos = null;
+        ObjectOutputStream oos = null;
+        try {
+            bos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(obj);
+            oos.flush();
+            bytes = bos.toByteArray();
+        } finally {
+            if (oos != null) {
+                oos.close();
+            }
+            if (bos != null) {
+                bos.close();
+            }
+        }
+        return bytes;
+    }
+
+    public static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj = null;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
     }
 }

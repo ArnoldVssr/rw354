@@ -4,13 +4,14 @@ import java.io.*;
 public class MyClient 
 {
 	private Socket socket = null;
-	public static ObjectInputStream inFromServer = null;
-	public static ObjectOutputStream outToServer = null;
+	private static byte[] sendbuf = null;
+	private static byte[] recbuf = null;
 	private boolean isConnected = false;
 	public static boolean notUnique = true;
 	public static User user = new User();
 	public static boolean readBusy = true;
 	public static String username = "";
+	public static String musername = "";
 	public static String message = "";
 	public static final class Lock { }
 	public final static Object lock = new Lock();
@@ -20,8 +21,6 @@ public class MyClient
 		System.out.println(this);
 		String inputName = "";
 		String choice = "";
-		String body = "";
-		String toUser = "";
 		InetAddress address;
 		int port = -1;
 
@@ -31,29 +30,20 @@ public class MyClient
 			{
 				socket = new Socket("localHost", 6066);
 				isConnected = true;
+				
+				sendbuf = new byte[socket.getSendBufferSize()];
+	        	recbuf = new byte[socket.getReceiveBufferSize()];
+				
 				address = socket.getInetAddress();
 				port = socket.getPort();
 				user = new User(inputName, address,port);
-				MyThread io = new MyThread("io_" + user.getPort());
+				MyThread io = new MyThread("io_" + user.getPort(),socket);
 				io.start();
-				outToServer = new ObjectOutputStream(socket.getOutputStream());
-				inFromServer = new ObjectInputStream(socket.getInputStream());
-
-				synchronized (lock) {
-					while (readBusy)
-					{
-						lock.wait();	
-					}
-					System.out.println("Notifying server of next send");
-					outToServer.writeObject(0);
-					outToServer.writeObject(user);
-					notUnique = (Boolean) inFromServer.readObject();
-					readBusy = true;
-				}
+				
 
 				while(notUnique)
 				{
-					System.out.println("Client says username was: " + user.getName());
+					System.out.println("Client says username was: " + username);
 					synchronized(lock)
 					{
 						while (readBusy)
@@ -61,60 +51,39 @@ public class MyClient
 							lock.wait();
 						}
 					}
+					System.out.println("Notifying server of next send");
 					User nuser = new User(username,address,port);
-					outToServer.writeObject(0);
-					outToServer.writeObject(nuser);
+					sendbuf = ClientHandler.toByteArray(nuser);
+					socket.getOutputStream().write(0);
+					socket.getOutputStream().write(sendbuf);
 					System.out.println("Client says username is: " + nuser.getName());
-					notUnique = (Boolean) inFromServer.readObject();
+					socket.getInputStream().read(recbuf);
+					notUnique = (Boolean) ClientHandler.toObject(recbuf);
 					readBusy = true;
 				}
-				username = "";
+				
 				while(!choice.equalsIgnoreCase("bye"))
 				{
-					if(inputName == "")
-					{
-						System.out.println("Client entered bye loop");
-						inputName = "1";
-					}
+					Message rec = new Message();
 					try
 					{
-						byte[] btemp = new byte[5000];
-						inFromServer.readFully(btemp);
-						Message mtemp = (Message) ClientHandler.toObject(btemp);
-						//Message mtemp = (Message) inFromServer.readObject();
+						socket.getInputStream().read(recbuf);
+						rec = (Message) ClientHandler.toObject(recbuf);			
 					}
 					finally
 					{
-						
+						if (rec.getRecipient() != "" || rec.getOrigin().equalsIgnoreCase("server"))
+						{
+							System.out.println(rec.getOrigin() + ": " + rec.getMessage());
+						}
+						if (rec.getOrigin().equalsIgnoreCase("server"))
+						{
+							socket.wait(200);
+							socket.close();
+							break;
+						}
 					}
 				}
-				/*while(!choice.equalsIgnoreCase("bye"))
-				{
-					System.out.println("Client entered bye loop");
-					synchronized(lock)
-					{
-						while(readBusy)
-						{
-							lock.wait(30000);
-							
-						}
-						if (username != "" && message != "")
-						{
-							System.out.println("Sending message");
-							Message tm = new Message(username,message);
-							outToServer.writeObject(1);
-							outToServer.writeObject(tm);
-						}
-						//outToServer.writeObject(1);
-						//outToServer.writeObject(tm);
-						readBusy = true;
-					}
-				}*/
-				outToServer.writeObject(9);
-				inFromServer.close();
-				outToServer.close();
-				socket.close();
-				System.out.println(user.getName() + " disconnected");
 			}
 			catch (SocketException socketError) 
 			{
@@ -122,7 +91,7 @@ public class MyClient
 			} 
 			catch (IOException e)
 			{
-				System.err.println(e.getMessage());
+				System.err.println("IO Exception");
 			} 
 			catch (ClassNotFoundException e) 
 			{

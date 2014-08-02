@@ -4,6 +4,7 @@ import java.io.Serializable;
 public class Message implements Serializable
 {
 	private String toUser = "";
+	private String fromUser = "";
 	private String body = "";
     private static final long serialVersionUID = 42L;
 	
@@ -13,8 +14,9 @@ public class Message implements Serializable
         this.body = "";
     }
 	
-	public Message(String toUser, String body)
+	public Message(String fromUser,String toUser, String body)
     {
+		this.fromUser = fromUser;
         this.toUser = toUser;
         this.body = body;
     }
@@ -27,5 +29,10 @@ public class Message implements Serializable
 	public String getRecipient()
 	{
 		return toUser;
+	}
+	
+	public String getOrigin()
+	{
+		return fromUser;
 	}
 }
