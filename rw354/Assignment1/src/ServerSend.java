@@ -81,12 +81,12 @@ public class ServerSend implements Runnable
 						//moet fix
 						for(Map.Entry<Socket, User> entry: Server.mapTest.entrySet())
 						{
-							if (Server.mapTest.containsValue(recipient) || Server.mapTest.containsValue(sender))
+							User user = entry.getValue();
+							if (recipient.equalsIgnoreCase(user.getName()) || sender.equalsIgnoreCase(user.getName()))
 							{
-							
 								Socket tmpSocket = entry.getKey();
 								PrintWriter tempWriter = new PrintWriter(tmpSocket.getOutputStream());
-								tempWriter.println("[" + entry.getValue() + "]: " + temp);
+								tempWriter.println("[" + user.getName() + "]: " + temp);
 								tempWriter.flush();
 							}
 						}

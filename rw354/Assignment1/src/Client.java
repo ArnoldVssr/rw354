@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 import javax.swing.JButton;
@@ -53,7 +52,7 @@ public class Client implements Runnable
 		}
 	}
 	
-	public void CheckStream()
+	public void CheckStream() throws ClassNotFoundException, IOException
 	{
 		while (true)
 		{
@@ -61,38 +60,29 @@ public class Client implements Runnable
 		}
 	}
 	
-	public void Receive()
+	public void Receive() throws ClassNotFoundException, IOException
 	{
+		System.out.println("Entered Recieve");
 		if (input.hasNext())
 		{
+			System.out.println("Input got more to recieve");
 			String message = input.nextLine();
+			System.out.println("Message: " + message);
 			String option = message.substring(0, 3);
 			
 			if (option.equals("#?!"))
 			{
+				System.out.println("Unique User");
 				String temp = message.substring(3);
+				System.out.println("");
+				
 				System.out.println(temp);
 				
-				byte[] byt = temp.getBytes();
-				ArrayList a = null;
-				try {
-					a = (ArrayList) Server.toObject(byt);
-				} catch (ClassNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				
-				String[] current = new String[a.size()];
-				
-				System.out.println(a.size());
-				int tcount = 0;
+				String[] current = temp.split(",");
 				
 				for (int i = 0; i < current.length; i++)
 				{
-					current[i] = ((User)a.get(i)).getName();
+					current[i] = current[i].trim();
 				}
 				
 				ClientGUI.onlineUsers.setListData(current);

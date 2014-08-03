@@ -32,7 +32,7 @@ public class Server
 					
 					User user = new User(userName,clientSocket.getInetAddress(),clientSocket.getPort());
 					
-					if (mapTest.containsValue(user))
+					if (mapTest.containsKey(clientSocket))
 					{
 						userOutput = new PrintWriter(clientSocket.getOutputStream());
 						userOutput.println("%^&false");
@@ -66,19 +66,25 @@ public class Server
 		ClientGUI.userNameLabel.setText("Username: " + userName);
 		ClientGUI.mainWindow.setTitle("Cr@p Talk: "+ userName);
 		
-		byte[] byt = new byte[2048];
-		ArrayList test = new ArrayList(mapTest.values());
-		
+		StringBuilder users = new StringBuilder();
+		users.append("#?!");
+		for(User a: mapTest.values())
+		{
+			users.append(a.getName());
+			users.append(',');
+		}
+		users.deleteCharAt(users.length()-1);
+		System.out.println(users);
 		//fixed
 		for(Map.Entry<Socket,User> entry: mapTest.entrySet())
 		{
-			Socket newOnlineUser = entry.getKey();
+			Socket newOnlineUser = (Socket)entry.getKey();
 			System.out.println("Socket: " + newOnlineUser);
 			PrintWriter userOutput = new PrintWriter(newOnlineUser.getOutputStream());
-			byt = toByteArray(test);
-			System.out.println(byt.toString());
-			userOutput.println("#?!" + byt);
-			userOutput.println();
+			System.out.println(users.toString());
+			userOutput.println(users.toString());
+			System.out.println("Passed user output write");
+			userOutput.flush();
 		}
 	}
 	
