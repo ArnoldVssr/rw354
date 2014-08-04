@@ -52,7 +52,7 @@ public class Client implements Runnable
 		}
 	}
 	
-	public void CheckStream()
+	public void CheckStream() throws ClassNotFoundException, IOException
 	{
 		while (true)
 		{
@@ -60,18 +60,23 @@ public class Client implements Runnable
 		}
 	}
 	
-	public void Receive()
+	public void Receive() throws ClassNotFoundException, IOException
 	{
+		System.out.println("Entered Recieve");
 		if (input.hasNext())
 		{
+			System.out.println("Input got more to recieve");
 			String message = input.nextLine();
+			System.out.println("Message: " + message);
 			String option = message.substring(0, 3);
 			
 			if (option.equals("#?!"))
 			{
+				System.out.println("Unique User");
 				String temp = message.substring(3);
-				temp = temp.replace("[", "").trim();
-				temp = temp.replace("]", "").trim();
+				System.out.println("");
+				
+				System.out.println(temp);
 				
 				String[] current = temp.split(",");
 				

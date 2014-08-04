@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.Map;
 import java.util.Scanner;
 
 public class ServerSend implements Runnable 
@@ -19,18 +20,15 @@ public class ServerSend implements Runnable
 		if (!socket.isConnected())
 		{
 			//fixed
-			for (int i = 0; i < Server.connectionList.size(); i++)
+			if(Server.mapTest.containsKey(socket))
 			{
-				if (Server.connectionList.get(i) == socket)
-				{
-					Server.connectionList.remove(i);
-				}
+				Server.mapTest.remove(socket);
 			}
 			
 			//fixed
-			for (int i = 0; i < Server.connectionList.size(); i++)
+			for (Map.Entry<Socket,User> entry: Server.mapTest.entrySet())
 			{
-				Socket temp = (Socket) Server.connectionList.get(i);
+				Socket temp = entry.getKey();
 				PrintWriter tempWriter = new PrintWriter(temp.getOutputStream());
 				tempWriter.println("User from "+ temp.getLocalAddress().getHostName() +" disconnected");
 				tempWriter.flush();
@@ -76,28 +74,21 @@ public class ServerSend implements Runnable
 						
 						temp = temp.substring(endUser+3, temp.length());
 						
-						System.out.println("isUser there: " + Server.userList.contains(recipient));
+						System.out.println("isUser there: " + Server.mapTest.containsValue(recipient));
 						
 						System.out.println("users are: ");
+						
 						//moet fix
-						for (int i = 0; i < Server.userList.size(); i++)
+						for(Map.Entry<Socket, User> entry: Server.mapTest.entrySet())
 						{
-							String user = (String) Server.userList.get(i);
-							if (user.equalsIgnoreCase(recipient))
+							User user = entry.getValue();
+							if (recipient.equalsIgnoreCase(user.getName()) || sender.equalsIgnoreCase(user.getName()))
 							{
-								Socket tmpSocket = Server.connectionList.get(i);
+								Socket tmpSocket = entry.getKey();
 								PrintWriter tempWriter = new PrintWriter(tmpSocket.getOutputStream());
-								tempWriter.println("[" + sender + "]: " + temp);
+								tempWriter.println("[" + user.getName() + "]: " + temp);
 								tempWriter.flush();
 							}
-							if (user.equalsIgnoreCase(sender))
-							{
-								Socket tmpSocket = Server.connectionList.get(i);
-								PrintWriter tempWriter = new PrintWriter(tmpSocket.getOutputStream());
-								tempWriter.println("[" + sender + "]: " + temp);
-								tempWriter.flush();
-							}
-							
 						}
 						System.out.println("whisper sent");
 						
@@ -105,10 +96,11 @@ public class ServerSend implements Runnable
 					else
 					{
 						//fixed
-						for (int i = 0; i < Server.connectionList.size(); i++)
+						for(Map.Entry<Socket, User> entry: Server.mapTest.entrySet())
 						{
-							Socket echoSocket = Server.connectionList.get(i);
+							Socket echoSocket = entry.getKey();
 							PrintWriter tempWriter = new PrintWriter(echoSocket.getOutputStream());
+							System.out.println("OUT_serverReturn_run: " + message);
 							tempWriter.println(message);
 							tempWriter.flush();
 							

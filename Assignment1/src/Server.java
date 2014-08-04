@@ -1,13 +1,13 @@
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
  
 public class Server
 {
-	public static ArrayList<Socket> connectionList = new ArrayList<Socket>();
-	public static ArrayList<String> userList = new ArrayList<String>();
-	public static ArrayList<String> uniqueUser = new ArrayList<String>();
+	public static Map<Socket,User> mapTest = new HashMap<Socket,User>();
 	
 	public static void main(String[] args) throws IOException
 	{
@@ -20,7 +20,7 @@ public class Server
 			while (true)
 			{
 				Socket clientSocket = serverSocket.accept();
-				connectionList.add(clientSocket);
+				//connectionList.add(clientSocket);
 				
 				String userName = "";
 				boolean unique = false;
@@ -30,7 +30,9 @@ public class Server
 					PrintWriter userOutput = new PrintWriter(clientSocket.getOutputStream());
 					userName = userInput.nextLine();
 					
-					if (uniqueUser.contains(userName.toLowerCase()))
+					User user = new User(userName,clientSocket.getInetAddress(),clientSocket.getPort());
+					
+					if (mapTest.containsValue(user))
 					{
 						userOutput = new PrintWriter(clientSocket.getOutputStream());
 						userOutput.println("%^&false");
@@ -38,6 +40,7 @@ public class Server
 					}
 					else
 					{
+						mapTest.put(clientSocket,user);
 						unique = true;
 					}
 				}				
@@ -59,19 +62,69 @@ public class Server
 	
 	public static void AddUserName(String userName) throws Exception
 	{	
-		userList.add(userName);
-		uniqueUser.add(userName.toLowerCase());
 		ClientGUI.userName = userName;
 		ClientGUI.userNameLabel.setText("Username: " + userName);
 		ClientGUI.mainWindow.setTitle("Cr@p Talk: "+ userName);
 		
-		//fixed
-		for (int i = 0; i < Server.connectionList.size(); i++)
+		StringBuilder users = new StringBuilder();
+		users.append("#?!");
+		for(User a: mapTest.values())
 		{
-			Socket newOnlineUser = (Socket) Server.connectionList.get(i);
+			users.append(a.getName());
+			users.append(',');
+		}
+		users.deleteCharAt(users.length()-1);
+		System.out.println(users);
+		//fixed
+		for(Map.Entry<Socket,User> entry: mapTest.entrySet())
+		{
+			Socket newOnlineUser = (Socket)entry.getKey();
+			System.out.println("Socket: " + newOnlineUser);
 			PrintWriter userOutput = new PrintWriter(newOnlineUser.getOutputStream());
-			userOutput.println("#?!" + userList);
+			System.out.println(users.toString());
+			userOutput.println(users.toString());
+			System.out.println("Passed user output write");
 			userOutput.flush();
 		}
 	}
+	
+	public static byte[] toByteArray(Object obj) throws IOException {
+        byte[] bytes = null;
+        ByteArrayOutputStream bos = null;
+        ObjectOutputStream oos = null;
+        try {
+            bos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(obj);
+            oos.flush();
+            bytes = bos.toByteArray();
+        } finally {
+            if (oos != null) {
+                oos.close();
+            }
+            if (bos != null) {
+                bos.close();
+            }
+        }
+        return bytes;
+    }
+
+    public static Object toObject(byte[] bytes) throws IOException, ClassNotFoundException {
+        Object obj = null;
+        ByteArrayInputStream bis = null;
+        ObjectInputStream ois = null;
+        try {
+            bis = new ByteArrayInputStream(bytes);
+            ois = new ObjectInputStream(bis);
+            obj = ois.readObject();
+        } finally {
+            if (bis != null) {
+                bis.close();
+            }
+            if (ois != null) {
+                ois.close();
+            }
+        }
+        return obj;
+    }
 }

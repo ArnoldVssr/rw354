@@ -152,7 +152,7 @@ public class ClientGUI
 		
 		userNameLabel.setText("");
 		mainWindow.getContentPane().add(userNameLabel);
-		userNameLabel.setBounds(300, 10 , 140, 15);
+		userNameLabel.setBounds(350, 10 , 140, 15);
 		
 		userNameBox.setHorizontalAlignment(SwingConstants.CENTER);
 		mainWindow.getContentPane().add(userNameBox);
