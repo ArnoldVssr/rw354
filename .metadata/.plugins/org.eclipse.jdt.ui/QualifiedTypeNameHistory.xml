@@ -2,4 +2,8 @@
 <qualifiedTypeNameHistroy>
 <fullyQualifiedTypeName name="java.util.HashSet"/>
 <fullyQualifiedTypeName name="MyClient.userob"/>
+<fullyQualifiedTypeName name="User"/>
+<fullyQualifiedTypeName name="ClientHandler"/>
+<fullyQualifiedTypeName name="java.lang.Object"/>
+<fullyQualifiedTypeName name="MyClient"/>
 </qualifiedTypeNameHistroy>
