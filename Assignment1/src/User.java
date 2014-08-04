@@ -8,7 +8,7 @@ public class User implements Serializable
     private int port;
     private static final long serialVersionUID = 42L;
 
-    public User(String name, InetAddress address, int port)
+    public User(String name,InetAddress address, int port)
     {
         this.name = name;
         this.address = address;
@@ -45,14 +45,14 @@ public class User implements Serializable
     @Override 
     public boolean equals(Object ob)
     {
-    	if (ob == this)
+    	/*if (ob == this)
     	{
     		return true;
     	}
     	if (ob == null || ob.getClass() != this.getClass())
     	{
     		return false;
-    	}
+    	}*/
     	
     	User user = (User) ob;
     	return user.getName().equalsIgnoreCase(this.getName());
