@@ -7,11 +7,18 @@ public class Message implements Serializable
 	private String fromUser = "";
 	private String body = "";
     private static final long serialVersionUID = 42L;
+    
+    public static final int USER = 0;
+	public static final int WHISPER = 1;
+    public static final int LOBBY = 2;
+    public static final int HASHSET = 3;
+    public static final int BYE = 9;
 	
 	public Message()
     {
         this.toUser = "";
         this.body = "";
+        this.fromUser = "";
     }
 	
 	public Message(String fromUser,String toUser, String body)

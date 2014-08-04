@@ -17,12 +17,6 @@ public class ClientHandler extends Thread
     private static Map<String,Socket> Maptest = new HashMap<String,Socket>();
     private static User cur_user = new User();
     
-	private static final int USER = 0;
-    private static final int WHISPER = 1;
-    private static final int LOBBY = 2;
-    private static final int HASHSET = 3;
-    private static final int BYE = 9;
-    
     public ClientHandler(Socket socket)
     {
     	super();
@@ -35,8 +29,7 @@ public class ClientHandler extends Thread
         {
         	int state;
         	boolean unique = false;
-        	System.out.println("remote Socket Address "
-                    + socket.getRemoteSocketAddress());
+        	System.out.println("remote Socket Address " + socket.getRemoteSocketAddress());
         	
         	sendbuf = new byte[socket.getSendBufferSize()];
         	recbuf = new byte[socket.getReceiveBufferSize()];
@@ -44,10 +37,10 @@ public class ClientHandler extends Thread
         	while (!unique)
         	{
         		state = socket.getInputStream().read();
-        		if (state == USER)
+        		if (state == Message.USER)
         		{
         			socket.getInputStream().read(recbuf);
-        			cur_user = (User)toObject(recbuf);
+        			cur_user = (User) toObject(recbuf);
         			
         			if (users.contains(cur_user))
         			{
@@ -70,7 +63,7 @@ public class ClientHandler extends Thread
         	while(true)
         	{
         		state = socket.getInputStream().read();
-        		if (state == WHISPER)
+        		if (state == Message.WHISPER)
         		{
         			socket.getInputStream().read(recbuf);
         			Message Temp = (Message) toObject(recbuf);
@@ -81,16 +74,26 @@ public class ClientHandler extends Thread
         				rec.getOutputStream().write(sendbuf);
         				rec.getOutputStream().flush();
         			}
+        			rec = Maptest.get(Temp.getOrigin());
+        			rec.getOutputStream().write(sendbuf);
+    				rec.getOutputStream().flush();
         		}
-        		else if (state == LOBBY)
+        		else if (state == Message.LOBBY)
+        		{
+        			socket.getInputStream().read(recbuf);
+        			Message Temp = (Message) toObject(recbuf);
+    				for(Map.Entry<String, Socket> entry: Maptest.entrySet())
+    				{
+    					sendbuf = toByteArray(Temp);
+    					entry.getValue().getOutputStream().write(sendbuf);
+    					entry.getValue().getOutputStream().flush();
+    				}
+        		}
+        		else if (state == Message.HASHSET)
         		{
         			
         		}
-        		else if (state == HASHSET)
-        		{
-        			
-        		}
-        		else if (state == BYE)
+        		else if (state == Message.BYE)
         		{
         			System.out.println("Exiting, notifying client");
         			Message send = new Message("server", cur_user.getName(),"closing");
@@ -109,11 +112,8 @@ public class ClientHandler extends Thread
         {
             e.printStackTrace();
         } 
-        /*catch (ClassNotFoundException e) 
+        catch (ClassNotFoundException e)
         {
-			e.printStackTrace();
-		} */ catch (ClassNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
     }
