@@ -59,7 +59,6 @@ public class ClientHandler extends Thread
         			}
         		}
         	}
-        	
         	while(true)
         	{
         		state = socket.getInputStream().read();
@@ -82,6 +81,7 @@ public class ClientHandler extends Thread
         		{
         			socket.getInputStream().read(recbuf);
         			Message Temp = (Message) toObject(recbuf);
+        			System.out.println("CH recv: " + Temp.getMessage());
     				for(Map.Entry<String, Socket> entry: Maptest.entrySet())
     				{
     					sendbuf = toByteArray(Temp);

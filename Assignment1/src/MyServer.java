@@ -6,7 +6,7 @@ public class MyServer
     public static void main(String[] args) throws IOException 
     {
     	
-	    int portNumber = 6066;
+	    int portNumber = 3000;
 	    boolean listening = true;
 	     
 	    try
